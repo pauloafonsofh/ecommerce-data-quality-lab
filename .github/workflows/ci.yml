@@ -28,7 +28,7 @@ jobs:
           --health-retries 10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Lint the test runner
         run: shellcheck run_tests.sh
@@ -42,7 +42,7 @@ jobs:
 
       - name: Keep the raw results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: results
           path: results/

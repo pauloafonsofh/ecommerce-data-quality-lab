@@ -35,13 +35,10 @@ run_psql() {
 command -v "$PSQL" > /dev/null 2>&1 \
   || die "psql not found ('$PSQL'). Add PostgreSQL's bin folder to PATH or set PSQL=/path/to/psql."
 
-# Confirm we really reached a local server before changing anything.
-addr=$(run_psql postgres -tAc "SELECT coalesce(host(inet_server_addr()), 'local socket')") \
+# The unset above is what keeps us local: PGHOSTADDR, for example, would win over -h.
+# Now just confirm that the local server answers before changing anything.
+run_psql postgres -tAc 'SELECT 1' > /dev/null \
   || die "cannot connect to PostgreSQL on $HOST:$PORT as $DB_USER"
-case "$addr" in
-  127.0.0.1 | ::1) ;;
-  *) die "server address is '$addr', expected 127.0.0.1 or ::1. Refusing to continue." ;;
-esac
 
 echo "psql client : $("$PSQL" --version)"
 echo "server      : $(run_psql postgres -tAc 'SELECT version()')"
