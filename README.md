@@ -24,7 +24,7 @@ The new check fails on the first commit and passes after the fix.
 - **Data validation with SQL** on the full data set, not on a sample.
 - **Independent test oracles:** a second calculation and a small data set computed by hand.
 - **Defect reports** with impact in rows and money, blast radius and data remediation.
-- **Regression checks in CI** (GitHub Actions) on every push and pull request.
+- **Regression checks in CI** (GitHub Actions) on every pull request and every push to `main`.
 - **Tests for the tests:** deliberate mutations prove that each check can fail ([mutations](docs/mutations.md)).
 
 ## How it works
@@ -69,6 +69,7 @@ export PGPASSWORD=...        # or use a pgpass file
 ```
 
 The script only connects to `127.0.0.1` and only drops and creates the database `dq_lab`.
+`PGPORT` must point to a local PostgreSQL server, not to an SSH tunnel.
 
 ## Out of scope
 

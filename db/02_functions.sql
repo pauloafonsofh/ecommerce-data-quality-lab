@@ -1,6 +1,7 @@
 -- System under test: store functions.
--- Business rejections come back as a status text (never as an exception),
--- so the same scenario can run before and after a fix.
+-- Business-rule rejections come back as a status text, so the same scenario can run
+-- before and after a fix. Invalid input (negative amount, unknown status) is stopped
+-- by the table constraints and raises an error.
 
 -- Registers a customer. Returns 'OK' or 'ALREADY_EXISTS'.
 CREATE FUNCTION register_customer(p_tax_id text, p_name text, p_email text)
@@ -142,7 +143,7 @@ DECLARE
   v_status     text;
   v_refunded   numeric(12,2);
 BEGIN
-  -- Lock the payment row: prevents two refunds at the same time (see BUG-001).
+  -- Lock the payment row: prevents two refunds at the same time (concurrency test planned with BUG-001).
   SELECT id, amount, status INTO v_payment_id, v_paid, v_status
   FROM payments
   WHERE payment_ref = p_payment_ref
