@@ -4,15 +4,26 @@
 -- refunds:       refunds, by refund day
 -- net_revenue:   gross_revenue - refunds
 CREATE VIEW daily_revenue AS
-WITH sales AS (
-  SELECT p.paid_at::date AS day,
-         sum(oi.qty)     AS items_sold,
-         sum(p.amount)   AS gross_revenue
-  FROM orders o
-  JOIN order_items oi ON oi.order_id = o.id
-  JOIN payments p     ON p.order_id = o.id
-  WHERE p.status = 'captured'
-  GROUP BY p.paid_at::date
+-- Add up items and payments separately BEFORE joining them:
+-- joining row by row would repeat each payment once per item (and each item once per payment).
+WITH items_by_order AS (
+  SELECT order_id, sum(qty) AS qty
+  FROM order_items
+  GROUP BY order_id
+),
+payments_by_order_day AS (
+  SELECT order_id, paid_at::date AS day, sum(amount) AS amount
+  FROM payments
+  WHERE status = 'captured'
+  GROUP BY order_id, paid_at::date
+),
+sales AS (
+  SELECT p.day,
+         sum(coalesce(i.qty, 0)) AS items_sold,
+         sum(p.amount)           AS gross_revenue
+  FROM payments_by_order_day p
+  LEFT JOIN items_by_order i ON i.order_id = p.order_id
+  GROUP BY p.day
 ),
 refunds_by_day AS (
   SELECT refunded_at::date AS day,
