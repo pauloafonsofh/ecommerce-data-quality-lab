@@ -23,7 +23,7 @@ $$;
 -- Adds one item to an order, reserving stock.
 -- Creates the order when p_order_ref is new.
 -- Returns 'OK', 'UNKNOWN_CUSTOMER', 'UNKNOWN_PRODUCT', 'INVALID_QTY',
--- 'ORDER_CLOSED' or 'OUT_OF_STOCK'.
+-- 'ORDER_NOT_YOURS', 'ORDER_CLOSED' or 'OUT_OF_STOCK'.
 CREATE FUNCTION place_order(p_order_ref text, p_tax_id text, p_sku text,
                             p_qty integer, p_at timestamptz)
 RETURNS text
@@ -33,9 +33,10 @@ DECLARE
   v_customer_id  bigint;
   v_product_id   bigint;
   v_price        numeric(12,2);
-  v_order_id     bigint;
-  v_order_status text;
-  v_stock        integer;
+  v_order_id       bigint;
+  v_order_customer bigint;
+  v_order_status   text;
+  v_stock          integer;
 BEGIN
   -- 1. Validate the input
   SELECT id INTO v_customer_id FROM customers WHERE tax_id = p_tax_id;
@@ -52,7 +53,12 @@ BEGIN
     RETURN 'INVALID_QTY';
   END IF;
 
-  SELECT id, status INTO v_order_id, v_order_status FROM orders WHERE order_ref = p_order_ref;
+  SELECT id, customer_id, status INTO v_order_id, v_order_customer, v_order_status
+  FROM orders
+  WHERE order_ref = p_order_ref;
+  IF v_order_id IS NOT NULL AND v_order_customer <> v_customer_id THEN
+    RETURN 'ORDER_NOT_YOURS';
+  END IF;
   IF v_order_status = 'paid' THEN
     RETURN 'ORDER_CLOSED';
   END IF;
@@ -94,7 +100,11 @@ DECLARE
   v_total    numeric(12,2);
   v_captured numeric(12,2);
 BEGIN
-  SELECT id, total_amount INTO v_order_id, v_total FROM orders WHERE order_ref = p_order_ref;
+  -- Lock the order row: two payments at the same time cannot both pass the balance check.
+  SELECT id, total_amount INTO v_order_id, v_total
+  FROM orders
+  WHERE order_ref = p_order_ref
+  FOR UPDATE;
   IF v_order_id IS NULL THEN
     RETURN 'ORDER_NOT_FOUND';
   END IF;

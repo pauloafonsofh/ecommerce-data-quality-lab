@@ -27,3 +27,7 @@ SELECT qa.expect('S01-14', 'OK',                   refund_payment('RF-S01-1', 'P
 SELECT qa.expect('S01-15', 'OK',                   refund_payment('RF-S01-2', 'PAY-S01-1', 79.70, '2026-02-21 09:30+00'));
 SELECT qa.expect('S01-16', 'PAYMENT_NOT_CAPTURED', refund_payment('RF-S01-3', 'PAY-S01-F', 5.00,  '2026-02-21 10:00+00'));
 SELECT qa.expect('S01-17', 'PAYMENT_NOT_FOUND',    refund_payment('RF-S01-4', 'PAY-NOPE',  5.00,  '2026-02-21 10:00+00'));
+
+-- An order belongs to one customer: nobody else can add items to it.
+-- ORD-0008 is an open order of customer 00000000008 (its only payment failed).
+SELECT qa.expect('S01-18', 'ORDER_NOT_YOURS', place_order('ORD-0008', '00000000099', 'SKU-001', 1, '2026-02-22 10:00+00'));
