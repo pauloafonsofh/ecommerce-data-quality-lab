@@ -15,6 +15,8 @@ cd "$(dirname "$0")" || exit 2
 # --- Safety: this script only ever talks to a local server -------------------
 # Drop every variable that could point psql to another server or database.
 unset PGHOST PGHOSTADDR PGSERVICE PGSERVICEFILE PGDATABASE
+# Drop variables that would change the session time zone or date style.
+unset PGTZ PGDATESTYLE
 readonly HOST=127.0.0.1
 readonly DB=dq_lab                 # fixed name: the script never drops any other database
 PSQL="${PSQL:-psql}"
