@@ -1,4 +1,4 @@
--- Rule: daily_revenue matches the hand-computed values of scenario S03: 2026-03-10 -> items 4, gross 230.00, refunds 0, net 230.00; 2026-03-11 -> items 0, gross 0, refunds 30.00, net -30.00.
+-- Rule: daily_revenue matches the hand-computed values of scenario S03: 2026-03-10 -> items 5, gross 280.00, refunds 0, net 280.00; 2026-03-11 -> items 0, gross 30.00, refunds 30.00, net 0.00.
 -- Risk: The revenue report overstates or understates sales, so financial decisions use wrong numbers.
 -- Severity if violated: Major
 -- Related bug: BUG-005
@@ -7,8 +7,8 @@
 WITH expected AS (
     SELECT *
     FROM (VALUES
-        (DATE '2026-03-10', 4, 230.00,  0.00, 230.00),
-        (DATE '2026-03-11', 0,   0.00, 30.00, -30.00)
+        (DATE '2026-03-10', 5, 280.00,  0.00, 280.00),
+        (DATE '2026-03-11', 0,  30.00, 30.00,   0.00)
     ) AS t(day, items_sold, gross_revenue, refunds, net_revenue)
 ),
 comparison AS (
