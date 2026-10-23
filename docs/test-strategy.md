@@ -72,4 +72,5 @@ The impact of each defect in rows and money comes from the queries in `impact/`,
 
 - All checks PASS on `main` (CI green).
 - Zero Critical rule violated.
-- Every mutation in `docs/mutations.md` is caught by at least one check.
+- Every mutation in `docs/mutations.md` is caught by at least one check,
+  except the ones listed there as known gaps (each with the planned test that will close it).
