@@ -45,7 +45,7 @@ SELECT 'PAY-' || lpad(i::text, 4, '0'),
 FROM generate_series(1, 40) AS i
 JOIN orders o ON o.order_ref = 'ORD-' || lpad(i::text, 4, '0');
 
--- A partial refund of 10.00 on every 5th captured payment, one day later.
+-- A partial refund of 10.00 on every 5th payment, when it is captured, one day later.
 INSERT INTO refunds (refund_ref, payment_id, amount, refunded_at)
 SELECT 'RF-' || lpad(i::text, 4, '0'),
        pay.id,

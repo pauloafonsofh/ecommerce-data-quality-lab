@@ -1,4 +1,5 @@
 -- Rule: For every day, daily_revenue (items_sold, gross_revenue, refunds) equals the same numbers computed directly from order_items, payments and refunds.
+-- An order's items count once, on the day of its first captured payment.
 -- Risk: The revenue report overstates or understates sales, so financial decisions use wrong numbers.
 -- Severity if violated: Major
 -- Related bug: BUG-005
@@ -13,12 +14,12 @@ WITH gross_by_day AS (
     GROUP BY paid_at::date
 ),
 paid_orders_by_day AS (
-    -- each order counted once per day, even with 2+ captured payments that day
-    SELECT DISTINCT
-           order_id,
-           paid_at::date AS day
+    -- one day per order: the day of its FIRST captured payment
+    SELECT order_id,
+           MIN(paid_at)::date AS day
     FROM payments
     WHERE status = 'captured'
+    GROUP BY order_id
 ),
 items_by_order AS (
     SELECT order_id,
