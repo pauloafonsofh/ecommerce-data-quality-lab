@@ -130,10 +130,13 @@ DECLARE
   v_payment_id bigint;
   v_paid       numeric(12,2);
   v_status     text;
+  v_refunded   numeric(12,2);
 BEGIN
+  -- Lock the payment row: prevents two refunds at the same time (see BUG-001).
   SELECT id, amount, status INTO v_payment_id, v_paid, v_status
   FROM payments
-  WHERE payment_ref = p_payment_ref;
+  WHERE payment_ref = p_payment_ref
+  FOR UPDATE;
 
   IF v_payment_id IS NULL THEN
     RETURN 'PAYMENT_NOT_FOUND';
@@ -142,8 +145,12 @@ BEGIN
     RETURN 'PAYMENT_NOT_CAPTURED';
   END IF;
 
-  -- A refund can never be larger than the payment.
-  IF p_amount > v_paid THEN
+  -- The refunds already made plus this one can never be larger than the payment.
+  SELECT coalesce(sum(amount), 0) INTO v_refunded
+  FROM refunds
+  WHERE payment_id = v_payment_id;
+
+  IF v_refunded + p_amount > v_paid THEN
     RETURN 'REFUND_EXCEEDS_PAID';
   END IF;
 
